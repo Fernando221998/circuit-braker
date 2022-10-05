@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: produc-service
+  profiles:
+    active: default
+  cloud:
+    config:
+        enabled: true
+        uri: http://localhost:8888
+  config:
+    import: configserver:http://localhost:8888
+    
+server:
+  port: 8081
+  
+  
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+resilience4j.retry:
+  configs:
+    default:
+      maxRetryAttempts: 4
+      waitDuration: 500
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.util.concurrent.TimeoutException
+        - java.io.IOException
+  instances:
+    prices-service:
+      baseConfig: default
+
+resilience4j.circuitbreaker:
+   configs:
+     default:
+       slidingWindowSize: 4
+       minimumNumberOfCalls: 2
+       permittedNumberOfCallsInHalfOpenState: 1
+       automaticTransitionFromOpenToHalfOpenEnabled: true
+       waitDurationInOpenState: 15s
+       failureRateThreshold: 50
+       recordExceptions:
+         - org.springframework.web.client.HttpServerErrorException
+         - java.util.concurrent.TimeoutException
+         - java.io.IOException
+   instances:
+     prices-service:
+       baseConfig: default
